@@ -13,6 +13,7 @@
 #include <dm.h>
 #include <errno.h>
 #include <common.h>
+#include <log.h>
 #include <spi.h>
 #include <malloc.h>
 #include <asm/io.h>
@@ -21,6 +22,8 @@
 #include <asm/arch/clock.h>
 #endif
 #include <fsl_dspi.h>
+#include <linux/bitops.h>
+#include <linux/delay.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -273,7 +276,18 @@ static int dspi_xfer(struct fsl_dspi_priv *priv, uint cs, unsigned int bitlen,
 	if (len > 1) {
 		int tmp_len = len - 1;
 		while (tmp_len--) {
-			if (dout != NULL) {
+			if ((dout != NULL) && (din != NULL)) {
+				if (priv->charbit == 16) {
+					dspi_tx(priv, ctrl, *spi_wr16++);
+					*spi_rd16++ = dspi_rx(priv);
+				}
+				else {
+					dspi_tx(priv, ctrl, *spi_wr++);
+					*spi_rd++ = dspi_rx(priv);
+				}
+			}
+
+			else if (dout != NULL) {
 				if (priv->charbit == 16)
 					dspi_tx(priv, ctrl, *spi_wr16++);
 				else
@@ -281,7 +295,7 @@ static int dspi_xfer(struct fsl_dspi_priv *priv, uint cs, unsigned int bitlen,
 				dspi_rx(priv);
 			}
 
-			if (din != NULL) {
+			else if (din != NULL) {
 				dspi_tx(priv, ctrl, DSPI_IDLE_VAL);
 				if (priv->charbit == 16)
 					*spi_rd16++ = dspi_rx(priv);
@@ -297,7 +311,18 @@ static int dspi_xfer(struct fsl_dspi_priv *priv, uint cs, unsigned int bitlen,
 		ctrl &= ~DSPI_TFR_CONT;
 
 	if (len) {
-		if (dout != NULL) {
+		if ((dout != NULL) && (din != NULL)) {
+			if (priv->charbit == 16) {
+				dspi_tx(priv, ctrl, *spi_wr16++);
+				*spi_rd16++ = dspi_rx(priv);
+			}
+			else {
+				dspi_tx(priv, ctrl, *spi_wr++);
+				*spi_rd++ = dspi_rx(priv);
+			}
+		}
+
+		else if (dout != NULL) {
 			if (priv->charbit == 16)
 				dspi_tx(priv, ctrl, *spi_wr16);
 			else
@@ -305,7 +330,7 @@ static int dspi_xfer(struct fsl_dspi_priv *priv, uint cs, unsigned int bitlen,
 			dspi_rx(priv);
 		}
 
-		if (din != NULL) {
+		else if (din != NULL) {
 			dspi_tx(priv, ctrl, DSPI_IDLE_VAL);
 			if (priv->charbit == 16)
 				*spi_rd16 = dspi_rx(priv);

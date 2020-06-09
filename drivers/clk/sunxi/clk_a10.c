@@ -11,6 +11,7 @@
 #include <asm/arch/ccu.h>
 #include <dt-bindings/clock/sun4i-a10-ccu.h>
 #include <dt-bindings/reset/sun4i-a10-ccu.h>
+#include <linux/bitops.h>
 
 static struct ccu_clk_gate a10_gates[] = {
 	[CLK_AHB_OTG]		= GATE(0x060, BIT(0)),
@@ -27,6 +28,8 @@ static struct ccu_clk_gate a10_gates[] = {
 	[CLK_AHB_SPI1]		= GATE(0x060, BIT(21)),
 	[CLK_AHB_SPI2]		= GATE(0x060, BIT(22)),
 	[CLK_AHB_SPI3]		= GATE(0x060, BIT(23)),
+
+	[CLK_AHB_GMAC]		= GATE(0x064, BIT(17)),
 
 	[CLK_APB1_UART0]	= GATE(0x06c, BIT(16)),
 	[CLK_APB1_UART1]	= GATE(0x06c, BIT(17)),
